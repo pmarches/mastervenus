@@ -1,5 +1,36 @@
 #!/bin/bash
-echo "Running Setup from $(pwd)"
+echo "Running Setup from $(pwd) with arguments $*"
 
-mkdir -p /data/mastervenus/service
+source "/data/SetupHelper/CommonResources"
+
+#### running manually and OK to proceed - prompt for input
+if [ $scriptAction == 'NONE' ] ; then
+	# display initial message
+	echo
+	echo "mastervenus"
+	
+	standardActionPrompt
+fi
+
+
+#### install code goes here
+if [ $scriptAction == 'INSTALL' ] ; then
+	logMessage "Installing mastervenus"
+
+	mkdir -p "/data/mastervenus/service"
+	touch "/data/mastervenus/service/run"
+# 	extInstall "https://github.com/pulquero/velib_python" "velib_python" "master" "/"
+
+	installService $packageName
+fi
+
+
+#### uninstalling - check scriptAction again
+# if an install step failed package needs to be removed
+if [ $scriptAction == 'UNINSTALL' ] ; then
+	logMessage "Uninstalling mastervenus"
+	removeService $packageName
+fi
+
+endScript
 
