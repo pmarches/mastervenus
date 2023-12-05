@@ -21,7 +21,7 @@ if [ $scriptAction == 'INSTALL' ] ; then
 	touch "/data/mastervenus/service/run"
 # 	extInstall "https://github.com/pulquero/velib_python" "velib_python" "master" "/"
 
-	installService $packageName
+	installService mastervenus
 fi
 
 
@@ -29,7 +29,7 @@ fi
 # if an install step failed package needs to be removed
 if [ $scriptAction == 'UNINSTALL' ] ; then
 	logMessage "Uninstalling mastervenus"
-	removeService $packageName
+	removeService mastervenus
 fi
 
 endScript
