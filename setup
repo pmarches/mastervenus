@@ -17,8 +17,10 @@ fi
 if [ $scriptAction == 'INSTALL' ] ; then
 	logMessage "Installing mastervenus"
 
-	mkdir -p "/data/mastervenus/service"
+	mkdir -p "/data/mastervenus/service" /opt/victronenergy/service/mastervenus
 	touch "/data/mastervenus/service/run"
+	cp version /data/mastervenus
+	
 # 	extInstall "https://github.com/pulquero/velib_python" "velib_python" "master" "/"
 
 	installService mastervenus
