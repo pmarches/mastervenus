@@ -1,3 +1,9 @@
 #!/bin/bash
 
-sleep 30
+#sleep 30
+#exit
+ifconfig can1 down
+ip link set can1 up type can bitrate 250000
+ifconfig can1 up
+
+PYTHONPATH=python-can-develop/:typing_extensions-4.2.0/src python3 mastervenus.py
