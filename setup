@@ -2,6 +2,7 @@
 echo "Running Setup from $(pwd) with arguments $*"
 
 source "/data/SetupHelper/CommonResources"
+BASE_DIR=/data/mastervenus
 
 #### running manually and OK to proceed - prompt for input
 if [ $scriptAction == 'NONE' ] ; then
@@ -12,18 +13,19 @@ if [ $scriptAction == 'NONE' ] ; then
 	standardActionPrompt
 fi
 
+function cleanup ()
+{
+	echo cleanup
+}
 
 #### install code goes here
 if [ $scriptAction == 'INSTALL' ] ; then
 	logMessage "Installing mastervenus"
-
-	mkdir -p "/data/mastervenus/service" /opt/victronenergy/service/mastervenus
-	touch "/data/mastervenus/service/run"
-	cp version /data/mastervenus
 	
-# 	extInstall "https://github.com/pulquero/velib_python" "velib_python" "master" "/"
+#    updateFileSets
 
 	installService mastervenus
+	cleanup
 fi
 
 
