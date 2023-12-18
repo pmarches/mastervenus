@@ -173,12 +173,28 @@ def parseMasterbusMessage(message):
 
 def handleDBusEvents(mainloop):
     try:
-        global bus
+        bus = can.Bus(channel='can1', interface='socketcan')
+        periodicMessages=[
+            makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_SOC),
+            makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_VOLTS),
+            makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_AMPS),
+            makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_AMPS_CONSUMED),
+        ]
+        bus.send_periodic(periodicMessages, 1.0)
+
+        periodicMessages=[
+            makeMastervoltRequestMessage(0x183AF412, ATTR_INVERTER_DC_VOLTAGE_IN),
+            makeMastervoltRequestMessage(0x183AF412, ATTR_INVERTER_AC_AMPS_OUT),
+        ]
+        bus.send_periodic(periodicMessages, 1.0)
+
         for message in bus:
             parseMasterbusMessage(message)
-    except:
-        traceback.print_exc()
-        mainloop.quit()
+    except can.exceptions.CanOperationError:
+        print("Got CanOperationError. Exit and exit")
+        #sys.exit(1)
+        os._exit(1)
+        #mainloop.quit()
 
 def makeMastervoltRequestMessage(deviceId,itemId):
     return can.Message(arbitration_id=deviceId, data=itemId.to_bytes(2,'little'), is_extended_id=True)
@@ -194,22 +210,6 @@ def mainForwardMasterbusToDbus():
     dcshunt_dbusservice=createDBusEntriesForDCShunt(deviceinstance=0)
     global masscombi_dbusservice
     masscombi_dbusservice=createDBusEntriesForMassCombi(deviceinstance=1)
-
-    global bus
-    bus = can.Bus(channel='can1', interface='socketcan')
-    periodicMessages=[
-        makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_SOC),
-        makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_VOLTS),
-        makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_AMPS),
-        makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_AMPS_CONSUMED),
-    ]
-    bus.send_periodic(periodicMessages, 1.0)
-
-    periodicMessages=[
-        makeMastervoltRequestMessage(0x183AF412, ATTR_INVERTER_DC_VOLTAGE_IN),
-        makeMastervoltRequestMessage(0x183AF412, ATTR_INVERTER_AC_AMPS_OUT),
-    ]
-    bus.send_periodic(periodicMessages, 1.0)
     
     mainloop = GLib.MainLoop()
     poller = Thread(target=lambda: handleDBusEvents(mainloop))
@@ -221,3 +221,4 @@ mainForwardMasterbusToDbus()
 
 #Without a terminator, I get 2000 canbus messages in 81 seconds. --->  time candump -n 2000 can1
 #If I add a 120 Ohm terminator between Can H and CAN L.
+
