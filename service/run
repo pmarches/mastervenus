@@ -1,4 +1,7 @@
 #!/bin/bash
+logfile=/tmp/mastervenus.tmp
+set > $logfile
+
 exec 2>&1
 
 #sleep 30
