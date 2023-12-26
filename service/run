@@ -1,7 +1,4 @@
 #!/bin/bash
-logfile=/tmp/mastervenus.tmp
-set > $logfile
-
 exec 2>&1
 
 #sleep 30
@@ -11,8 +8,11 @@ ip link set can1 up type can bitrate 250000
 ifconfig can1 up
 ifconfig can1
 
-basedir=/data/mastervenus/
-cd $basedir
-pwd
+if [[ $# -eq 0 ]]; then
+    basedir=/data/mastervenus/
+else #This is the dev version, running from the local directory
+    basedir=$(dirname $0)/..
+fi
 
-env PYTHONPATH=python-can-develop/:typing_extensions-4.2.0/src python3 mastervenus.py
+cd $basedir
+env PYTHONPATH=python-can-develop/:typing_extensions-4.2.0/src python3 $basedir/mastervenus.py
