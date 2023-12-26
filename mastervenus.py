@@ -19,22 +19,26 @@ import struct
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), '../'))
 from vedbus import VeDbusService
 
-softwareVersion = '1.0'
+
+def readVersionFile():
+    versionStr=open(os.path.dirname(__file__)+'/version').read()
+    return versionStr.strip()
 
 def createDBusEntriesForDCShunt(deviceinstance):
     dcshunt_dbusservice = VeDbusService('com.victronenergy.battery.masterbus_shunt0', dbus.SystemBus(private=True))
     dcshunt_dbusservice.add_path('/Mgmt/ProcessName', __file__)
-    dcshunt_dbusservice.add_path('/Mgmt/ProcessVersion', 'Unkown version, and running on Python ')
+    dcshunt_dbusservice.add_path('/Mgmt/ProcessVersion', readVersionFile())
     dcshunt_dbusservice.add_path('/Mgmt/Connection', __file__ + ' connection')
 
     # Create the mandatory objects
     dcshunt_dbusservice.add_path('/DeviceInstance', deviceinstance)
-    dcshunt_dbusservice.add_path('/ProductId', 0)
     dcshunt_dbusservice.add_path('/ProductName', 'Mastervolt DC Shunt')
     dcshunt_dbusservice.add_path('/CustomName', 'DCShunt')
-    dcshunt_dbusservice.add_path('/FirmwareVersion', 0)
-    dcshunt_dbusservice.add_path('/HardwareVersion', 0)
+    dcshunt_dbusservice.add_path('/FirmwareVersion', readVersionFile())
+    dcshunt_dbusservice.add_path('/ProductId', 20)
+    dcshunt_dbusservice.add_path('/HardwareVersion', 1)
     dcshunt_dbusservice.add_path('/Connected', 1)
+    dcshunt_dbusservice.add_path('/Serial', 'Serial123')
 
     # As defined in https://github.com/victronenergy/venus/wiki/dbus#battery
     dcshunt_dbusservice.add_path('/Dc/0/Voltage', value=None)
@@ -110,7 +114,6 @@ def handleDCShuntMessage(message, messageKind):
             dcshunt_dbusservice['/ConsumedAmphours']=round(floatValue, 2)
             if dcshunt_dbusservice['/History/LastDischarge'] is None or dcshunt_dbusservice['/History/LastDischarge'] < floatValue:
                 dcshunt_dbusservice['/History/LastDischarge']=round(floatValue, 2)
-            
         elif(ATTR_DCSHUNT_TEMPERATURE==attributeId):
             dcshunt_dbusservice['/Dc/0/Temperature']=round(floatValue, 1)
     elif(0x19b==messageKind): #String label messages
@@ -175,12 +178,17 @@ def handleDBusEvents(mainloop):
     try:
         bus = can.Bus(channel='can1', interface='socketcan')
         periodicMessages=[
-            makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_SOC),
             makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_VOLTS),
             makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_AMPS),
-            makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_AMPS_CONSUMED),
         ]
         bus.send_periodic(periodicMessages, 1.0)
+
+        periodicMessages=[
+            makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_SOC),
+            makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_AMPS_CONSUMED),
+            makeMastervoltRequestMessage(0x186F1297, ATTR_DCSHUNT_TEMPERATURE),
+        ]
+        bus.send_periodic(periodicMessages, 10.0)
 
         periodicMessages=[
             makeMastervoltRequestMessage(0x183AF412, ATTR_INVERTER_DC_VOLTAGE_IN),
@@ -198,18 +206,19 @@ def handleDBusEvents(mainloop):
 
 def makeMastervoltRequestMessage(deviceId,itemId):
     return can.Message(arbitration_id=deviceId, data=itemId.to_bytes(2,'little'), is_extended_id=True)
-
+    
 def mainForwardMasterbusToDbus():
     global dbusObjects
     print(__file__ + " starting up")
+    print(readVersionFile())
 
     # Have a mainloop, so we can send/receive asynchronous calls to and from dbus
     DBusGMainLoop(set_as_default=True)
 
     global dcshunt_dbusservice
-    dcshunt_dbusservice=createDBusEntriesForDCShunt(deviceinstance=0)
+    dcshunt_dbusservice=createDBusEntriesForDCShunt(deviceinstance=10)
     global masscombi_dbusservice
-    masscombi_dbusservice=createDBusEntriesForMassCombi(deviceinstance=1)
+    masscombi_dbusservice=createDBusEntriesForMassCombi(deviceinstance=11)
     
     mainloop = GLib.MainLoop()
     poller = Thread(target=lambda: handleDBusEvents(mainloop))
