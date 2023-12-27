@@ -47,6 +47,7 @@ def createDBusEntriesForDCShunt(deviceinstance):
     dcshunt_dbusservice.add_path('/Dc/0/Temperature', value=None)
     dcshunt_dbusservice.add_path('/ConsumedAmphours', value=None)
     dcshunt_dbusservice.add_path('/Soc', value=None)
+    dcshunt_dbusservice.add_path('/TimeToGo', value=None) #Time of discharge remaining in seconds.
 
     dcshunt_dbusservice.add_path('/History/MinimumVoltage', value=None)
     dcshunt_dbusservice.add_path('/History/MaximumVoltage', value=None)
@@ -89,6 +90,17 @@ ATTR_MASSCOMBI_POWER_STATE=0x38
 ATTR_CHARGER_SWITCH_STATE=0x3A
 ATTR_CHARGER_MODE=0x3C
 
+def recomputeTimeToGo():
+    if (dcshunt_dbusservice['/Dc/0/Current'] is None or dcshunt_dbusservice['/Soc'] is None or dcshunt_dbusservice['/ConsumedAmphours'] is None):
+        return
+    if (dcshunt_dbusservice['/Dc/0/Current'] >= 0):
+        dcshunt_dbusservice['/TimeToGo']=None
+    else:
+        stateOfDischarge=(100-dcshunt_dbusservice['/Soc'])/100.0
+        totalAmpHours=-dcshunt_dbusservice['/ConsumedAmphours']/stateOfDischarge
+        hoursLeft=totalAmpHours/dcshunt_dbusservice['/Dc/0/Current']
+        dcshunt_dbusservice['/TimeToGo']=hoursLeft*3600
+
 def handleDCShuntMessage(message, messageKind):
     if(message.dlc == 2): return
     if 'dcshunt_dbusservice' not in globals() : return
@@ -114,6 +126,7 @@ def handleDCShuntMessage(message, messageKind):
             dcshunt_dbusservice['/ConsumedAmphours']=round(floatValue, 2)
             if dcshunt_dbusservice['/History/LastDischarge'] is None or dcshunt_dbusservice['/History/LastDischarge'] < floatValue:
                 dcshunt_dbusservice['/History/LastDischarge']=round(floatValue, 2)
+            recomputeTimeToGo()
         elif(ATTR_DCSHUNT_TEMPERATURE==attributeId):
             dcshunt_dbusservice['/Dc/0/Temperature']=round(floatValue, 1)
     elif(0x19b==messageKind): #String label messages
@@ -133,9 +146,10 @@ def createDBusEntriesForMassCombi(deviceinstance):
     masscombi_dbusservice.add_path('/DeviceInstance', deviceinstance)
     masscombi_dbusservice.add_path('/ProductId', 0)
     masscombi_dbusservice.add_path('/ProductName', 'Mastervolt masscombi 4000W')
-    masscombi_dbusservice.add_path('/CustomName', 'Masscombi')
-    masscombi_dbusservice.add_path('/FirmwareVersion', 0)
-    masscombi_dbusservice.add_path('/HardwareVersion', 0)
+    masscombi_dbusservice.add_path('/CustomName', 'Masscombi') #Get this from configuration
+    masscombi_dbusservice.add_path('/FirmwareVersion', 0) #Get this from configuration
+    masscombi_dbusservice.add_path('/HardwareVersion', 0) #Get this from configuration
+    masscombi_dbusservice.add_path('/Serial', 'MassCombiSerial') #Get this from configuration
     masscombi_dbusservice.add_path('/Connected', 1)
 
     # As defined in https://github.com/victronenergy/venus/wiki/dbus#inverter

@@ -9,7 +9,7 @@ ifconfig can1 up
 ifconfig can1
 
 if [[ $# -eq 0 ]]; then
-    basedir=/data/mastervenus/
+    basedir=/data/mastervenus
 else #This is the dev version, running from the local directory
     basedir=$(dirname $0)/..
 fi
