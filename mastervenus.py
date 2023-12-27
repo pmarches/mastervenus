@@ -28,7 +28,7 @@ def createDBusEntriesForDCShunt(deviceinstance):
     dcshunt_dbusservice = VeDbusService('com.victronenergy.battery.masterbus_shunt0', dbus.SystemBus(private=True))
     dcshunt_dbusservice.add_path('/Mgmt/ProcessName', __file__)
     dcshunt_dbusservice.add_path('/Mgmt/ProcessVersion', readVersionFile())
-    dcshunt_dbusservice.add_path('/Mgmt/Connection', __file__ + ' connection')
+    dcshunt_dbusservice.add_path('/Mgmt/Connection', 'Mastervenus')
 
     # Create the mandatory objects
     dcshunt_dbusservice.add_path('/DeviceInstance', deviceinstance)
@@ -139,8 +139,8 @@ def handleDCShuntMessage(message, messageKind):
 def createDBusEntriesForMassCombi(deviceinstance):
     masscombi_dbusservice = VeDbusService('com.victronenergy.inverter.masterbus_masscombi1', dbus.SystemBus(private=True))
     masscombi_dbusservice.add_path('/Mgmt/ProcessName', __file__)
-    masscombi_dbusservice.add_path('/Mgmt/ProcessVersion', 'Unkown version, and running on Python ')
-    masscombi_dbusservice.add_path('/Mgmt/Connection', __file__ + ' connection')
+    masscombi_dbusservice.add_path('/Mgmt/ProcessVersion', readVersionFile())
+    masscombi_dbusservice.add_path('/Mgmt/Connection', 'Mastervenus')
 
     # Create the mandatory objects
     masscombi_dbusservice.add_path('/DeviceInstance', deviceinstance)
