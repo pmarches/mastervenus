@@ -32,7 +32,7 @@ def createDBusEntriesForDCShunt(deviceinstance):
 
     # Create the mandatory objects
     dcshunt_dbusservice.add_path('/DeviceInstance', deviceinstance)
-    dcshunt_dbusservice.add_path('/ProductName', 'Mastervolt DC Shunt')
+    dcshunt_dbusservice.add_path('/ProductName', 'Mastervolt Shunt')
     dcshunt_dbusservice.add_path('/CustomName', 'DCShunt')
     dcshunt_dbusservice.add_path('/FirmwareVersion', readVersionFile())
     dcshunt_dbusservice.add_path('/ProductId', 20)
