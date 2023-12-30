@@ -93,7 +93,7 @@ ATTR_CHARGER_MODE=0x3C
 def recomputeTimeToGo():
     if (dcshunt_dbusservice['/Dc/0/Current'] is None or dcshunt_dbusservice['/Soc'] is None or dcshunt_dbusservice['/ConsumedAmphours'] is None):
         return
-    if (dcshunt_dbusservice['/Dc/0/Current'] >= 0):
+    if (dcshunt_dbusservice['/Dc/0/Current'] >= 0 or dcshunt_dbusservice['/Soc']>=100):
         dcshunt_dbusservice['/TimeToGo']=None
     else:
         stateOfDischarge=(100-dcshunt_dbusservice['/Soc'])/100.0
@@ -146,7 +146,7 @@ def createDBusEntriesForMassCombi(deviceinstance):
     masscombi_dbusservice.add_path('/DeviceInstance', deviceinstance)
     masscombi_dbusservice.add_path('/ProductId', 0)
     masscombi_dbusservice.add_path('/ProductName', 'Mastervolt masscombi 4000W')
-    masscombi_dbusservice.add_path('/CustomName', 'Masscombi') #Get this from configuration
+    masscombi_dbusservice.add_path('/CustomName', 'Inverter Charger') #Get this from configuration
     masscombi_dbusservice.add_path('/FirmwareVersion', 0) #Get this from configuration
     masscombi_dbusservice.add_path('/HardwareVersion', 0) #Get this from configuration
     masscombi_dbusservice.add_path('/Serial', 'MassCombiSerial') #Get this from configuration
